@@ -1,0 +1,20 @@
+﻿[
+  {
+    "Id": "c001",
+    "ReciterId": 1,
+    "FilePath": "clips/alafasy_al-fatiha.mp3",
+    "Text": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    "Title": "سورة الفاتحة - آية ١",
+    "Tags": [ "آية", "قرآن" ],
+    "IsEnabled": true
+  },
+  {
+    "Id": "c002",
+    "ReciterId": 2,
+    "FilePath": "clips/aldosari_al-baqarah-255.mp3",
+    "Text": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ...",
+    "Title": "آية الكرسي",
+    "Tags": [ "آية", "فضل" ],
+    "IsEnabled": true
+  }
+]

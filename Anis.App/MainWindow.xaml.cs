@@ -1,48 +1,39 @@
-﻿using System.ComponentModel;
+﻿using Anis.App.MVVM.ViewModels;
+using Anis.Core.Interfaces;
+using System.ComponentModel;
 using System.Windows;
+using System; // Required for OnStateChanged
 
 namespace Anis.App;
 
 public partial class MainWindow : Window
 {
     private bool _isExplicitlyClosed = false;
+    private readonly IScheduler _scheduler;
 
-    public MainWindow()
+    public MainWindow(SettingsViewModel viewModel, IScheduler scheduler)
     {
         InitializeComponent();
+        DataContext = viewModel;
+        _scheduler = scheduler;
     }
 
-    private void Window_Closing(object? sender, CancelEventArgs e)
+    // --- CENTRALIZED FUNCTION TO SHOW THE WINDOW ---
+    private void ShowSettingsWindow()
     {
-        // If the user is closing the window via the 'Exit' menu item, allow it.
-        if (_isExplicitlyClosed)
-        {
-            return;
-        }
-
-        // Otherwise, cancel the close operation and just hide the window.
-        e.Cancel = true;
-        this.Hide();
-    }
-
-    private void MyNotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
-    {
-        // Show the window and bring it to the front
         this.Show();
         this.WindowState = WindowState.Normal;
         this.Activate();
+        this.Focus(); // Ensure it gets keyboard focus
     }
 
-    private void Settings_Click(object sender, RoutedEventArgs e)
-    {
-        // This is the same as double-clicking
-        MyNotifyIcon_TrayMouseDoubleClick(sender, e);
-    }
+    // --- EVENT HANDLERS ---
 
-    private void Exit_Click(object sender, RoutedEventArgs e)
+    private void Window_Closing(object? sender, CancelEventArgs e)
     {
-        _isExplicitlyClosed = true; // Mark that the exit was intentional
-        Application.Current.Shutdown();
+        if (_isExplicitlyClosed) return;
+        e.Cancel = true;
+        this.Hide();
     }
 
     protected override void OnStateChanged(EventArgs e)
@@ -52,5 +43,38 @@ public partial class MainWindow : Window
             this.Hide();
         }
         base.OnStateChanged(e);
+    }
+
+    // --- TRAY ICON INTERACTIONS ---
+
+    private void MyNotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    {
+        ShowSettingsWindow(); // Call the centralized function
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        ShowSettingsWindow(); // Call the centralized function
+    }
+
+    private void PauseMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_scheduler.IsPaused)
+        {
+            _scheduler.Resume();
+            PauseMenuItem.IsChecked = false;
+        }
+        else
+        {
+            _scheduler.Pause();
+            PauseMenuItem.IsChecked = true;
+        }
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        _isExplicitlyClosed = true;
+        MyNotifyIcon.Dispose(); // Clean up the tray icon
+        Application.Current.Shutdown();
     }
 }

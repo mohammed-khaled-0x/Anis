@@ -10,6 +10,7 @@ using Anis.Core.Services;
 using System.Diagnostics;
 using Anis.App.Services;
 using System.Threading;
+using Anis.App.MVVM.ViewModels;
 
 namespace Anis.App;
 
@@ -34,6 +35,7 @@ public partial class App : Application
                 services.AddSingleton<IAudioPlayer, Anis.Infrastructure.Audio.NAudioPlayer>();
                 services.AddSingleton<IScheduler, SchedulerService>();
                 services.AddSingleton<INotificationHost, WpfNotificationHost>();
+                services.AddSingleton<SettingsViewModel>();
                 // Register Views (Windows)
                 services.AddSingleton<MainWindow>();
             })
@@ -70,8 +72,9 @@ public partial class App : Application
         //var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
         //startupForm.Show();
 
-        AppHost.Services.GetRequiredService<MainWindow>();
-
+        var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
+        startupForm.Show();
+        startupForm.Hide();
         base.OnStartup(e);
     }
 

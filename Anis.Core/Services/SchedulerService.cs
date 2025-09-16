@@ -23,6 +23,8 @@ public class SchedulerService : IScheduler
     private List<Reciter> _reciters = [];
     private readonly List<string> _recentlyPlayedIds = [];
     private readonly Random _random = new();
+    private bool _isPaused = false;
+    public bool IsPaused => _isPaused;
     private readonly string _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
 
 
@@ -52,6 +54,12 @@ public class SchedulerService : IScheduler
 
     private async void OnTimerTick(object? state)
     {
+        if (_isPaused)
+        {
+            Debug.WriteLine("Scheduler is paused. Skipping tick.");
+            return;
+        }
+
         var eligibleClips = _clips
             .Where(c => c.IsEnabled && !_recentlyPlayedIds.Contains(c.Id))
             .ToList();
@@ -97,5 +105,33 @@ public class SchedulerService : IScheduler
         _timer?.Dispose();
         _timer = null;
         Debug.WriteLine("Scheduler stopped.");
+    }
+
+    public void Pause()
+    {
+        if (_isPaused) return;
+        _isPaused = true;
+        Debug.WriteLine("Scheduler paused.");
+    }
+    public void Resume()
+    {
+        if (!_isPaused) return;
+        _isPaused = false;
+        Debug.WriteLine("Scheduler resumed.");
+    }
+
+    public void UpdateSettings(AppSettings newSettings)
+    {
+        _settings = newSettings;
+
+        // Stop the current timer
+        _timer?.Change(Timeout.Infinite, 0);
+        _timer?.Dispose();
+
+        // Start a new timer with the updated interval
+        var newInterval = TimeSpan.FromMinutes(_settings.IntervalMinutes);
+        _timer = new Timer(OnTimerTick, null, newInterval, newInterval);
+
+        Debug.WriteLine($"Scheduler settings updated. New interval: {newInterval.TotalMinutes} minutes.");
     }
 }

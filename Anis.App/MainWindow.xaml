@@ -13,6 +13,7 @@
         TextElement.FontSize="13"
         FontFamily="{materialDesign:MaterialDesignFont}"
         
+        Icon="/Assets/icon.ico"
         Title="Anis Settings" Height="450" Width="380"
         WindowStartupLocation="CenterScreen"
         Closing="Window_Closing">
@@ -23,7 +24,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Tray Icon Definition (No visual changes here, but it must remain) -->
+        <!-- Tray Icon Definition -->
         <tb:TaskbarIcon x:Name="MyNotifyIcon"
                         IconSource="/Assets/icon.ico"
                         ToolTipText="Anis - شغال في الخلفية"
@@ -41,17 +42,26 @@
         <!-- Settings Content -->
         <StackPanel Grid.Row="0" Orientation="Vertical">
 
-            <GroupBox Header="الفاصل الزمني (بالدقائق)" Margin="0,5" Style="{StaticResource MaterialDesignGroupBox}">
+            <!-- THE FIX IS HERE -->
+            <GroupBox Header="الفاصل الزمني (بالدقائق)" Margin="0,5">
                 <ComboBox Margin="10"
                           VerticalContentAlignment="Center"
                           ItemsSource="{Binding PresetIntervals}"
                           Text="{Binding IntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           IsEditable="True"
-                          materialDesign:HintAssist.Hint="اختر أو اكتب قيمة"
-                          Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
+                          materialDesign:HintAssist.Hint="اختر أو اكتب قيمة" />
             </GroupBox>
 
-            <GroupBox Header="عام" Margin="0,10" Style="{StaticResource MaterialDesignGroupBox}">
+            <GroupBox Header="المظهر" Margin="0,10">
+                <ComboBox Margin="10"
+                          ItemsSource="{Binding AvailableThemes}"
+                          SelectedItem="{Binding SelectedTheme}"
+                          DisplayMemberPath="Name"
+                          materialDesign:HintAssist.Hint="اختر المظهر المفضل" />
+            </GroupBox>
+
+            <!-- AND THE FIX IS HERE -->
+            <GroupBox Header="عام" Margin="0,10">
                 <StackPanel Margin="10">
                     <CheckBox Content="تشغيل مع بدء تشغيل ويندوز" 
                               IsChecked="{Binding RunOnWindowsStartup, Mode=TwoWay}"/>
@@ -60,8 +70,7 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="حفظ الإعدادات" Width="120" Height="30" Margin="5" Command="{Binding SaveSettingsCommand}" Style="{StaticResource MaterialDesignRaisedButton}" />
+            <Button Content="حفظ الإعدادات" Width="120" Height="30" Margin="5" Command="{Binding SaveSettingsCommand}" />
         </StackPanel>
-
     </Grid>
 </Window>

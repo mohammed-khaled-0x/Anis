@@ -2,8 +2,9 @@
 using Anis.Core.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Anis.App.MVVM.ViewModels;
 
@@ -11,42 +12,54 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsStore _settingsStore;
     private readonly IScheduler _scheduler;
+    private readonly IThemeManager _themeManager;
     private AppSettings _settings;
 
-    [ObservableProperty]
-    private int _intervalMinutes;
+    [ObservableProperty] private int _intervalMinutes;
+    [ObservableProperty] private bool _runOnWindowsStartup;
+    [ObservableProperty] private List<Theme> _availableThemes = new();
+    [ObservableProperty] private Theme? _selectedTheme;
 
-    [ObservableProperty]
-    private bool _runOnWindowsStartup;
-
-    public List<int> PresetIntervals { get; private set; }
-    public SettingsViewModel(ISettingsStore settingsStore, IScheduler scheduler)
+    public SettingsViewModel(ISettingsStore settingsStore, IScheduler scheduler, IThemeManager themeManager)
     {
         _settingsStore = settingsStore;
         _scheduler = scheduler;
-        _settings = new AppSettings(); // Initialize with default
+        _themeManager = themeManager;
+        _settings = new AppSettings();
         PresetIntervals = new List<int> { 5, 10, 15, 30, 60, 120 };
-        LoadSettings();
+
+        LoadData();
     }
 
-    private async void LoadSettings()
+    partial void OnSelectedThemeChanged(Theme? value)
+    {
+        if (value != null)
+        {
+            _themeManager.ApplyTheme(value);
+            _settings.ActiveThemeName = value.Name;
+        }
+    }
+
+    private async void LoadData()
     {
         _settings = await _settingsStore.LoadAsync();
+        AvailableThemes = await _themeManager.GetThemesAsync();
+
         IntervalMinutes = _settings.IntervalMinutes;
         RunOnWindowsStartup = _settings.RunOnWindowsStartup;
+        SelectedTheme = AvailableThemes.FirstOrDefault(t => t.Name == _settings.ActiveThemeName) ?? AvailableThemes.FirstOrDefault();
     }
 
     [RelayCommand]
     private async Task SaveSettingsAsync()
     {
-        // Update the settings object from the properties
         _settings.IntervalMinutes = IntervalMinutes;
-        _settings.RunOnWindowsStartup = _runOnWindowsStartup;
+        _settings.RunOnWindowsStartup = RunOnWindowsStartup;
+        _settings.ActiveThemeName = SelectedTheme?.Name ?? "Anis Dark (Default)";
 
-        // Save to the JSON file
         await _settingsStore.SaveAsync(_settings);
-
-        // Notify the scheduler about the changes in real-time
         _scheduler.UpdateSettings(_settings);
     }
+
+    public List<int> PresetIntervals { get; }
 }

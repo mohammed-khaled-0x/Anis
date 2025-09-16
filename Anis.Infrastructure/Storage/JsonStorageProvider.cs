@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace Anis.Infrastructure.Storage;
 
+// We removed IThemeManager from here. This class only reads/writes files.
 public class JsonStorageProvider : ISettingsStore, IClipRepository
 {
     private readonly string _storagePath;
@@ -16,42 +17,24 @@ public class JsonStorageProvider : ISettingsStore, IClipRepository
 
     public JsonStorageProvider()
     {
-        // This stores data in a safe, user-specific folder like C:\Users\YourUser\AppData\Local\Anis
         _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
-
-        // Ensure the directory exists
         if (!Directory.Exists(_storagePath))
         {
             Directory.CreateDirectory(_storagePath);
         }
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true // Makes the JSON file readable for humans
-        };
+        _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
     }
-
-    // --- ISettingsStore Implementation ---
 
     public async Task<AppSettings> LoadAsync()
     {
         var settingsFile = Path.Combine(_storagePath, "settings.json");
-        if (!File.Exists(settingsFile))
-        {
-            return new AppSettings(); // Return default settings if file doesn't exist
-        }
-
+        if (!File.Exists(settingsFile)) return new AppSettings();
         try
         {
             using var stream = File.OpenRead(settingsFile);
-            var settings = await JsonSerializer.DeserializeAsync<AppSettings>(stream);
-            return settings ?? new AppSettings();
+            return await JsonSerializer.DeserializeAsync<AppSettings>(stream) ?? new AppSettings();
         }
-        catch (JsonException)
-        {
-            // If the file is corrupt, return default settings
-            return new AppSettings();
-        }
+        catch (JsonException) { return new AppSettings(); }
     }
 
     public async Task SaveAsync(AppSettings settings)
@@ -61,38 +44,21 @@ public class JsonStorageProvider : ISettingsStore, IClipRepository
         await JsonSerializer.SerializeAsync(stream, settings, _jsonOptions);
     }
 
-    // --- IClipRepository Implementation ---
+    public Task<IEnumerable<Clip>> GetClipsAsync() => LoadDataAsync<Clip>("clips.json");
+    public Task<IEnumerable<Reciter>> GetRecitersAsync() => LoadDataAsync<Reciter>("reciters.json");
 
-    public Task<IEnumerable<Clip>> GetClipsAsync()
-    {
-        return LoadDataAsync<Clip>("clips.json");
-    }
-
-    public Task<IEnumerable<Reciter>> GetRecitersAsync()
-    {
-        return LoadDataAsync<Reciter>("reciters.json");
-    }
-
-    // --- Helper Method ---
+    // This is the new method for themes
+    public Task<IEnumerable<Theme>> GetThemesAsync() => LoadDataAsync<Theme>("themes.json");
 
     private async Task<IEnumerable<T>> LoadDataAsync<T>(string fileName)
     {
         var filePath = Path.Combine(_storagePath, fileName);
-        if (!File.Exists(filePath))
-        {
-            return Enumerable.Empty<T>(); // Return an empty list if file doesn't exist
-        }
-
+        if (!File.Exists(filePath)) return Enumerable.Empty<T>();
         try
         {
             using var stream = File.OpenRead(filePath);
-            var data = await JsonSerializer.DeserializeAsync<List<T>>(stream);
-            return data ?? Enumerable.Empty<T>();
+            return await JsonSerializer.DeserializeAsync<List<T>>(stream) ?? Enumerable.Empty<T>();
         }
-        catch (JsonException)
-        {
-            // If file is corrupt, return an empty list
-            return Enumerable.Empty<T>();
-        }
+        catch (JsonException) { return Enumerable.Empty<T>(); }
     }
 }

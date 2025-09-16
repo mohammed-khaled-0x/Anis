@@ -1,0 +1,146 @@
+[
+  {
+    "Name": "Qahwa Cream",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#8B6F5E",
+    "SecondaryColor": "#E9DFD3"
+  },
+  {
+    "Name": "Siwa Sand",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#A68F72",
+    "SecondaryColor": "#EADFCC"
+  },
+  {
+    "Name": "Date Palm",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#8E9D8D",
+    "SecondaryColor": "#E7DAC6"
+  },
+  {
+    "Name": "Papyrus Beige",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#9D9A84",
+    "SecondaryColor": "#EFE7D6"
+  },
+  {
+    "Name": "Sandalwood Oat",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#A88F7B",
+    "SecondaryColor": "#EDE2D1"
+  },
+  {
+    "Name": "Cardamom Latte",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#9BAA97",
+    "SecondaryColor": "#EDE3D3"
+  },
+  {
+    "Name": "Nile Clay",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#9B877A",
+    "SecondaryColor": "#EFE6DA"
+  },
+  {
+    "Name": "Palm Shade",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#7F8A6A",
+    "SecondaryColor": "#E5DCCB"
+  },
+  {
+    "Name": "Oasis Mist",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#95A5A2",
+    "SecondaryColor": "#E5DBCC"
+  },
+  {
+    "Name": "Cedar Milk",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#8E7966",
+    "SecondaryColor": "#E7D9C8"
+  },
+  {
+    "Name": "Musk & Oat",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#8F8A82",
+    "SecondaryColor": "#EEE5D8"
+  },
+  {
+    "Name": "Desert Rose",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#A78F87",
+    "SecondaryColor": "#F0E6D8"
+  },
+  {
+    "Name": "Saffron Milk",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#B4A06B",
+    "SecondaryColor": "#ECE2C7"
+  },
+  {
+    "Name": "Mudbrick Cream",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#A5856B",
+    "SecondaryColor": "#EEDFCF"
+  },
+  {
+    "Name": "Stone & Sand",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#8D958F",
+    "SecondaryColor": "#E9E0D2"
+  },
+  {
+    "Name": "Khaki Biscuit",
+    "BaseTheme": "Light",
+    "PrimaryColor": "#9C927C",
+    "SecondaryColor": "#E8DECD"
+  },
+  {
+    "Name": "Midnight Sage",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#A7C4A0",
+    "SecondaryColor": "#D9C7A6"
+  },
+  {
+    "Name": "Deep Olive Khaki",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#A6B28A",
+    "SecondaryColor": "#CBBB9E"
+  },
+  {
+    "Name": "Slate Teal",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#9CB7B0",
+    "SecondaryColor": "#CDBFAE"
+  },
+  {
+    "Name": "Cedar Night",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#B59C86",
+    "SecondaryColor": "#D4C7B6"
+  },
+  {
+    "Name": "Dusty Pine",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#8FAE9A",
+    "SecondaryColor": "#C7B8A6"
+  },
+  {
+    "Name": "Foggy Blue & Oat",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#9AA9BC",
+    "SecondaryColor": "#CFC2AE"
+  },
+  {
+    "Name": "Mocha Sage",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#B7A695",
+    "SecondaryColor": "#9FB6A2"
+  },
+  {
+    "Name": "Taupe Glow",
+    "BaseTheme": "Dark",
+    "PrimaryColor": "#C5B6A6",
+    "SecondaryColor": "#9FB3A8"
+  }
+]

@@ -1,42 +1,51 @@
-﻿using Anis.Core.Interfaces;
+﻿using Anis.App.MVVM.ViewModels;
+using Anis.App.Services;
+using Anis.Core.Interfaces;
+using Anis.Core.Services;
 using Anis.Infrastructure.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.IO;
-using System.Windows;
-using Anis.Infrastructure.Audio;
-using Anis.Core.Services;
 using System.Diagnostics;
-using Anis.App.Services;
+using System.IO;
+using System.Linq;
 using System.Threading;
-using Anis.App.MVVM.ViewModels;
+using System.Windows;
+using IAnisThemeManager = Anis.Core.Interfaces.IThemeManager; // Use an alias here too
 
 namespace Anis.App;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : Application
 {
     public static IHost? AppHost { get; private set; }
-    private readonly string _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
     private const string AppMutexName = "AnisApp-SingleInstanceMutex-E7A4A0B8";
     private static Mutex? _mutex;
+    private readonly string _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
 
     public App()
     {
         AppHost = Host.CreateDefaultBuilder()
             .ConfigureServices((hostContext, services) =>
             {
-                // Register Services (Implementations)
-                services.AddSingleton<ISettingsStore, JsonStorageProvider>();
-                services.AddSingleton<IClipRepository, JsonStorageProvider>();
+                // Register the single data provider instance
+                services.AddSingleton<JsonStorageProvider>();
+
+                // Register interfaces to point to the specific provider
+                services.AddSingleton<ISettingsStore>(sp => sp.GetRequiredService<JsonStorageProvider>());
+                services.AddSingleton<IClipRepository>(sp => sp.GetRequiredService<JsonStorageProvider>());
+
+                // Register other infrastructure
                 services.AddSingleton<IAudioPlayer, Anis.Infrastructure.Audio.NAudioPlayer>();
-                services.AddSingleton<IScheduler, SchedulerService>();
+                services.AddSingleton<IAnisThemeManager, WpfThemeManager>();
                 services.AddSingleton<INotificationHost, WpfNotificationHost>();
+
+                // Register Core Services
+                services.AddSingleton<IScheduler, SchedulerService>();
+
+                // Register ViewModels
                 services.AddSingleton<SettingsViewModel>();
-                // Register Views (Windows)
+
+                // Register Views
                 services.AddSingleton<MainWindow>();
             })
             .Build();
@@ -45,46 +54,45 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         _mutex = new Mutex(true, AppMutexName, out bool createdNew);
-
         if (!createdNew)
         {
-            // Another instance is already running.
             MessageBox.Show("تطبيق أنيس يعمل بالفعل في الخلفية.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Information);
             Application.Current.Shutdown();
             return;
         }
 
         Directory.CreateDirectory(_storagePath);
-
         await AppHost!.StartAsync();
-
         EnsureDataFilesExist();
 
+        // Initialize and apply theme
         var settingsStore = AppHost.Services.GetRequiredService<ISettingsStore>();
-        var currentSettings = await settingsStore.LoadAsync();
-        await settingsStore.SaveAsync(currentSettings);
+        var themeManager = AppHost.Services.GetRequiredService<IAnisThemeManager>();
+        var settings = await settingsStore.LoadAsync();
+        var themes = await themeManager.GetThemesAsync();
+        var activeTheme = themes.FirstOrDefault(t => t.Name == settings.ActiveThemeName) ?? themes.FirstOrDefault();
+        if (activeTheme != null)
+        {
+            themeManager.ApplyTheme(activeTheme);
+        }
 
-        // Start the scheduler in the background
+        await settingsStore.SaveAsync(settings);
+
         var scheduler = AppHost.Services.GetRequiredService<IScheduler>();
         scheduler.Start();
-
-        // The main window is now optional, we can still show it for settings later.
-        //var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
-        //startupForm.Show();
 
         var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
         startupForm.Show();
         startupForm.Hide();
+
         base.OnStartup(e);
     }
 
-    // في ملف App.xaml.cs
+    // EnsureDataFilesExist method remains the same
     private void EnsureDataFilesExist()
     {
         Directory.CreateDirectory(_storagePath);
-
-        // Copy data files (JSON)
-        string[] dataFiles = ["reciters.json", "clips.json"];
+        string[] dataFiles = ["reciters.json", "clips.json", "themes.json"];
         foreach (var fileName in dataFiles)
         {
             var destPath = Path.Combine(_storagePath, fileName);
@@ -94,12 +102,9 @@ public partial class App : Application
                 if (File.Exists(sourcePath)) File.Copy(sourcePath, destPath);
             }
         }
-
-        // Copy clip files (MP3, WAV, etc.)
         var sourceClipsDir = Path.Combine(AppContext.BaseDirectory, "clips");
         var destClipsDir = Path.Combine(_storagePath, "clips");
         Directory.CreateDirectory(destClipsDir);
-
         if (Directory.Exists(sourceClipsDir))
         {
             foreach (var sourceClipPath in Directory.GetFiles(sourceClipsDir))
@@ -113,6 +118,7 @@ public partial class App : Application
             }
         }
     }
+
 
     protected override async void OnExit(ExitEventArgs e)
     {

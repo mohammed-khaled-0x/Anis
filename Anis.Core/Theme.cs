@@ -3,8 +3,9 @@
 public class Theme
 {
     public string Name { get; set; } = string.Empty;
-    public bool IsDarkMode { get; set; }
-    public PopupTheme Popup { get; set; } = new();
+    public string BaseTheme { get; set; } = "Dark"; // "Dark" or "Light"
+    public string PrimaryColor { get; set; } = string.Empty;
+    public string SecondaryColor { get; set; } = string.Empty;
 }
 
 public class PopupTheme

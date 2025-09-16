@@ -9,6 +9,7 @@ using Anis.Infrastructure.Audio;
 using Anis.Core.Services;
 using System.Diagnostics;
 using Anis.App.Services;
+using System.Threading;
 
 namespace Anis.App;
 
@@ -19,6 +20,8 @@ public partial class App : Application
 {
     public static IHost? AppHost { get; private set; }
     private readonly string _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
+    private const string AppMutexName = "AnisApp-SingleInstanceMutex-E7A4A0B8";
+    private static Mutex? _mutex;
 
     public App()
     {
@@ -39,6 +42,16 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        _mutex = new Mutex(true, AppMutexName, out bool createdNew);
+
+        if (!createdNew)
+        {
+            // Another instance is already running.
+            MessageBox.Show("تطبيق أنيس يعمل بالفعل في الخلفية.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Information);
+            Application.Current.Shutdown();
+            return;
+        }
+
         Directory.CreateDirectory(_storagePath);
 
         await AppHost!.StartAsync();
@@ -54,8 +67,10 @@ public partial class App : Application
         scheduler.Start();
 
         // The main window is now optional, we can still show it for settings later.
-        var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
-        startupForm.Show();
+        //var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
+        //startupForm.Show();
+
+        AppHost.Services.GetRequiredService<MainWindow>();
 
         base.OnStartup(e);
     }

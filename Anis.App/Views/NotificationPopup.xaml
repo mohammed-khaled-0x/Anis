@@ -15,7 +15,16 @@
         Topmost="True"
         Loaded="Window_Loaded">
 
-    <Border Background="#2B2B2B" CornerRadius="8" BorderThickness="1" BorderBrush="#555555" Opacity="0.95">
+    <Border Background="#2B2B2B" CornerRadius="8" BorderThickness="1" BorderBrush="#555555" Opacity="0.95" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
         <Grid Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />

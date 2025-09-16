@@ -37,7 +37,7 @@ public class WpfNotificationHost : INotificationHost
             timer.Tick += (sender, args) =>
             {
                 timer.Stop();
-                _currentPopup?.Close();
+                _currentPopup?.CloseWithAnimation();
             };
             timer.Start();
         });

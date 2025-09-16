@@ -15,27 +15,30 @@ public class SchedulerService : IScheduler
     private readonly IClipRepository _clipRepository;
     private readonly ISettingsStore _settingsStore;
     private readonly IAudioPlayer _audioPlayer;
+    private readonly INotificationHost _notificationHost;
 
     private Timer? _timer;
     private AppSettings _settings = new();
     private List<Clip> _clips = [];
+    private List<Reciter> _reciters = [];
     private readonly List<string> _recentlyPlayedIds = [];
     private readonly Random _random = new();
     private readonly string _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Anis");
 
 
-    public SchedulerService(IClipRepository clipRepository, ISettingsStore settingsStore, IAudioPlayer audioPlayer)
+    public SchedulerService(IClipRepository clipRepository, ISettingsStore settingsStore, IAudioPlayer audioPlayer, INotificationHost notificationHost)
     {
         _clipRepository = clipRepository;
         _settingsStore = settingsStore;
         _audioPlayer = audioPlayer;
+        _notificationHost = notificationHost;
     }
 
     public async void Start()
     {
         _settings = await _settingsStore.LoadAsync();
         _clips = (await _clipRepository.GetClipsAsync()).ToList();
-
+        _reciters = (await _clipRepository.GetRecitersAsync()).ToList();
         // For testing, let's set a shorter interval
         // In production, the user's setting will be used.
         // _settings.IntervalMinutes = 1; // You can uncomment this for faster testing
@@ -63,6 +66,15 @@ public class SchedulerService : IScheduler
 
         var randomIndex = _random.Next(0, eligibleClips.Count);
         var selectedClip = eligibleClips[randomIndex];
+
+        var reciter = _reciters.FirstOrDefault(r => r.Id == selectedClip.ReciterId);
+        if (reciter == null)
+        {
+            Debug.WriteLine($"Reciter with ID {selectedClip.ReciterId} not found for clip {selectedClip.Title}.");
+            return;
+        }
+
+        _notificationHost.ShowNotification(selectedClip, reciter);
 
         Debug.WriteLine($"Selected clip: {selectedClip.Title}");
 

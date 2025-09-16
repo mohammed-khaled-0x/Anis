@@ -8,6 +8,7 @@ using System.Windows;
 using Anis.Infrastructure.Audio;
 using Anis.Core.Services;
 using System.Diagnostics;
+using Anis.App.Services;
 
 namespace Anis.App;
 
@@ -29,6 +30,7 @@ public partial class App : Application
                 services.AddSingleton<IClipRepository, JsonStorageProvider>();
                 services.AddSingleton<IAudioPlayer, Anis.Infrastructure.Audio.NAudioPlayer>();
                 services.AddSingleton<IScheduler, SchedulerService>();
+                services.AddSingleton<INotificationHost, WpfNotificationHost>();
                 // Register Views (Windows)
                 services.AddSingleton<MainWindow>();
             })

@@ -1,0 +1,51 @@
+﻿<Window x:Class="Anis.App.Views.AddClipView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        
+        Title="إضافة مقطع جديد" Height="450" Width="400"
+        WindowStartupLocation="CenterOwner"
+        FlowDirection="RightToLeft">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBox Margin="0,5" Text="{Binding ClipTitle, UpdateSourceTrigger=PropertyChanged}"
+                     materialDesign:HintAssist.Hint="عنوان المقطع (مثال: آية الكرسي)"/>
+
+            <TextBox Margin="0,15,0,5" Text="{Binding ClipText, UpdateSourceTrigger=PropertyChanged}"
+                     materialDesign:HintAssist.Hint="نص الآية أو الذكر"
+                     TextWrapping="Wrap" AcceptsReturn="True" Height="80"/>
+
+            <ComboBox Margin="0,15,0,5" ItemsSource="{Binding AvailableReciters}"
+                      SelectedItem="{Binding SelectedReciter}"
+                      DisplayMemberPath="Name"
+                      materialDesign:HintAssist.Hint="اختر القارئ"/>
+
+            <Grid Margin="0,15,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding SourceFilePath, Mode=OneWay}" IsReadOnly="True"
+                         materialDesign:HintAssist.Hint="مسار الملف الصوتي"/>
+                <Button Grid.Column="1" Margin="10,0,0,0" Content="تصفح..." Command="{Binding BrowseFileCommand}"/>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="حفظ المقطع" IsDefault="True" Command="{Binding SaveClipCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+        </StackPanel>
+    </Grid>
+</Window>

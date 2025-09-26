@@ -1,0 +1,56 @@
+﻿<Window x:Class="Anis.App.Views.NotificationPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Anis.App.Views"
+        mc:Ignorable="d"
+        Title="Anis Notification" 
+        Height="120" Width="350"
+        
+        AllowsTransparency="True" 
+        WindowStyle="None" 
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Loaded="Window_Loaded">
+
+    <Border Background="#2B2B2B" CornerRadius="8" BorderThickness="1" BorderBrush="#555555" Opacity="0.95" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Main Text (The Ayah/Dhikr) -->
+            <TextBlock Grid.Row="0"
+                       Text="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+                       Foreground="#A9B7C6"
+                       FontSize="18"
+                       FontFamily="Segoe UI"
+                       TextWrapping="Wrap"
+                       FlowDirection="RightToLeft"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
+                       x:Name="TextDisplay"/>
+
+            <!-- Title (Reciter Name / Surah) -->
+            <TextBlock Grid.Row="1"
+                       Text="مشاري راشد العفاسي - سورة الفاتحة"
+                       Foreground="#888888"
+                       FontSize="12"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Bottom"
+                       x:Name="TitleDisplay"/>
+        </Grid>
+    </Border>
+</Window>

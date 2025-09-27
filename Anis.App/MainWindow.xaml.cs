@@ -1,11 +1,11 @@
 ﻿using Anis.App.MVVM.ViewModels;
+using Anis.App.Views;
 using Anis.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.ComponentModel;
 using System.Windows;
-using System; // Required for OnStateChanged
-using Anis.App.Views;
-using Microsoft.Extensions.DependencyInjection;
-
+using System.Windows.Input;
 
 namespace Anis.App;
 
@@ -15,25 +15,39 @@ public partial class MainWindow : Window
     private readonly IScheduler _scheduler;
     private readonly IServiceProvider _serviceProvider;
 
-    public MainWindow(SettingsViewModel viewModel, IScheduler scheduler, IServiceProvider serviceProvider)
+    public SettingsViewModel SettingsVM { get; }
+    public ClipsManagerViewModel ClipsManagerVM { get; }
+
+    public MainWindow(
+        SettingsViewModel settingsVM,
+        ClipsManagerViewModel clipsManagerVM,
+        IScheduler scheduler,
+        IServiceProvider serviceProvider)
     {
         InitializeComponent();
-        DataContext = viewModel;
+
+        SettingsVM = settingsVM;
+        ClipsManagerVM = clipsManagerVM;
         _scheduler = scheduler;
         _serviceProvider = serviceProvider;
+
+        DataContext = this;
     }
 
-    // --- CENTRALIZED FUNCTION TO SHOW THE WINDOW ---
-    private void ShowSettingsWindow()
+    // --- Custom Title Bar Handlers ---
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        this.Show();
-        this.WindowState = WindowState.Normal;
-        this.Activate();
-        this.Focus(); // Ensure it gets keyboard focus
+        if (e.ChangedButton == MouseButton.Left)
+            this.DragMove();
     }
 
-    // --- EVENT HANDLERS ---
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.Hide();
+    }
 
+
+    // --- Window Behavior Handlers ---
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
         if (_isExplicitlyClosed) return;
@@ -50,16 +64,23 @@ public partial class MainWindow : Window
         base.OnStateChanged(e);
     }
 
-    // --- TRAY ICON INTERACTIONS ---
+    // --- Tray Icon Handlers ---
+    private void ShowSettingsWindow()
+    {
+        this.Show();
+        this.WindowState = WindowState.Normal;
+        this.Activate();
+        this.Focus();
+    }
 
     private void MyNotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
     {
-        ShowSettingsWindow(); // Call the centralized function
+        ShowSettingsWindow();
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        ShowSettingsWindow(); // Call the centralized function
+        ShowSettingsWindow();
     }
 
     private void PauseMenuItem_Click(object sender, RoutedEventArgs e)
@@ -79,17 +100,7 @@ public partial class MainWindow : Window
     private void Exit_Click(object sender, RoutedEventArgs e)
     {
         _isExplicitlyClosed = true;
-        MyNotifyIcon.Dispose(); // Clean up the tray icon
+        MyNotifyIcon.Dispose();
         Application.Current.Shutdown();
-    }
-
-    private void AddClipButton_Click(object sender, RoutedEventArgs e)
-    {
-        var addClipView = new AddClipView
-        {
-            DataContext = _serviceProvider.GetRequiredService<AddClipViewModel>(),
-            Owner = this // Set the owner to center the dialog over the main window
-        };
-        addClipView.ShowDialog();
     }
 }

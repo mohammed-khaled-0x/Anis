@@ -80,25 +80,29 @@ public class SchedulerService : IScheduler
             return;
         }
 
-        // --- NEW ORCHESTRATION LOGIC ---
-
-        // 1. Show the notification FIRST.
         _notificationHost.ShowNotification(selectedClip, reciter);
 
-        // 2. Start the audio playback and get its completion task.
-        var fullPath = Path.Combine(_storagePath, selectedClip.FilePath);
-        Task playbackTask = _audioPlayer.PlayAsync(fullPath, _settings.Volume);
+        Task completionTask;
 
-        // 3. Wait for the audio to finish.
-        await playbackTask;
+        // Check if the clip has an audio file
+        if (!string.IsNullOrWhiteSpace(selectedClip.FilePath))
+        {
+            // It's an audio clip, so we play the audio
+            var fullPath = Path.Combine(_storagePath, selectedClip.FilePath);
+            completionTask = _audioPlayer.PlayAsync(fullPath, _settings.Volume);
+        }
+        else
+        {
+            // It's a text-only clip. We create a manual delay task.
+            // Let's use a fixed duration for now (e.g., 7 seconds). We can make this configurable later.
+            completionTask = Task.Delay(TimeSpan.FromSeconds(7));
+        }
 
-        // 4. After audio finishes, wait a moment, then hide the notification.
-        await Task.Delay(500); // 0.5 second grace period
+        // Await EITHER the audio finishing OR the manual delay finishing.
+        await completionTask;
+
+        await Task.Delay(500); // Grace period
         _notificationHost.HideNotification();
-
-        // --- END OF NEW LOGIC ---
-
-        // Manage the recently played list
         _recentlyPlayedIds.Add(selectedClip.Id);
         while (_recentlyPlayedIds.Count > _settings.AvoidRecentRepetitionsCount)
         {

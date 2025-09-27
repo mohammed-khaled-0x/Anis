@@ -1,0 +1,126 @@
+﻿<UserControl x:Class="Anis.App.Controls.ClipsManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             xmlns:converters="clr-namespace:Anis.App.Converters" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:ObjectEqualityConverter x:Key="ObjectEqualityConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <!-- DataGrid is much better for this layout than ListView -->
+        <DataGrid ItemsSource="{Binding Clips}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  HeadersVisibility="None"
+                  GridLinesVisibility="None"
+                  SelectionMode="Single"
+                  VerticalScrollBarVisibility="Auto">
+            <DataGrid.Columns>
+                <!-- Column for Title and Text -->
+                <DataGridTemplateColumn Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel VerticalAlignment="Center" Margin="10, 5">
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                                <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" Foreground="Gray" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Column for Action Buttons (Fixed Width) -->
+                <DataGridTemplateColumn Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <!-- Inside the second DataGridTemplateColumn's DataTemplate -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                <!-- All buttons are now direct children, ensuring perfect alignment -->
+
+                                <!-- STOP Button -->
+                                <Button Command="{Binding DataContext.StopPlaybackCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Value="True">
+                                                            <Condition.Binding>
+                                                                <MultiBinding Converter="{StaticResource ObjectEqualityConverter}">
+                                                                    <Binding Path="DataContext.CurrentlyPlayingClip" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                                    <Binding />
+                                                                </MultiBinding>
+                                                            </Condition.Binding>
+                                                        </Condition>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <materialDesign:PackIcon Kind="Stop" />
+                                </Button>
+
+                                <!-- PLAY Button -->
+                                <Button Command="{Binding DataContext.PlayClipCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+            CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Value="True">
+                                                            <Condition.Binding>
+                                                                <MultiBinding Converter="{StaticResource ObjectEqualityConverter}">
+                                                                    <Binding Path="DataContext.CurrentlyPlayingClip" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                                    <Binding />
+                                                                </MultiBinding>
+                                                            </Condition.Binding>
+                                                        </Condition>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <materialDesign:PackIcon Kind="Play" />
+                                </Button>
+
+                                <!-- Edit and Delete buttons -->
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+            Command="{Binding DataContext.EditClipCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+            CommandParameter="{Binding}"
+            ToolTip="تعديل">
+                                    <materialDesign:PackIcon Kind="Pencil" />
+                                </Button>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" 
+            Command="{Binding DataContext.DeleteClipCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+            CommandParameter="{Binding}"
+            ToolTip="حذف">
+                                    <materialDesign:PackIcon Kind="Delete" Foreground="DarkRed" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Floating Action Button (FAB) for adding new clips -->
+        <Button Style="{StaticResource MaterialDesignFloatingActionButton}"
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Bottom"
+                Margin="20"
+                ToolTip="إضافة مقطع جديد"
+                Command="{Binding AddNewClipCommand}">
+            <materialDesign:PackIcon Kind="Add" />
+        </Button>
+    </Grid>
+</UserControl>

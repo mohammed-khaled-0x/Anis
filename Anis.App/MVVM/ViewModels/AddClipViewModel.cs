@@ -17,6 +17,9 @@ public partial class AddClipViewModel : ObservableObject
     private readonly IClipRepository _clipRepository;
     private readonly string _clipsStoragePath;
     private readonly IScheduler _scheduler;
+    [ObservableProperty]
+    private bool _isEditMode = false;
+    private string? _editingClipId;
 
     [ObservableProperty] private string _clipText = "";
     [ObservableProperty] private string _clipTitle = "";
@@ -53,51 +56,102 @@ public partial class AddClipViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task SaveClipAsync(Window window)
+    private async Task SaveClipAsync(Window? window) // Made Window nullable to be safe
     {
-        if (string.IsNullOrWhiteSpace(ClipText) || string.IsNullOrWhiteSpace(ClipTitle) ||
-            string.IsNullOrWhiteSpace(SourceFilePath) || SelectedReciter == null)
+        // --- VALIDATION ---
+        // In edit mode, we don't require a new file path.
+        if (string.IsNullOrWhiteSpace(ClipText) ||
+            string.IsNullOrWhiteSpace(ClipTitle) ||
+            SelectedReciter == null)
         {
-            MessageBox.Show("الرجاء ملء جميع الحقول واختيار ملف صوتي.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("الرجاء ملء حقول العنوان والنص واختيار قارئ وملف صوتي.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
         try
         {
-            // 1. Generate a unique ID and new file name to prevent conflicts
-            var newId = Guid.NewGuid().ToString("N");
-            var extension = Path.GetExtension(SourceFilePath);
-            var newFileName = $"{newId}{extension}";
-            var destinationPath = Path.Combine(_clipsStoragePath, newFileName);
-
-            // 2. Copy the file to the app's local storage
-            File.Copy(SourceFilePath, destinationPath, true);
-
-            // 3. Create the new Clip object
-            var newClip = new Clip
-            {
-                Id = newId,
-                ReciterId = SelectedReciter.Id,
-                Text = ClipText,
-                Title = ClipTitle,
-                FilePath = Path.Combine("clips", newFileName), // Store relative path
-                IsEnabled = true,
-                Tags = new List<string>() // Add tags later if needed
-            };
-
-            // 4. Load existing clips, add the new one, and save back
+            // First, load all the clips that currently exist.
             var allClips = (await _clipRepository.GetClipsAsync()).ToList();
-            allClips.Add(newClip);
+
+            if (IsEditMode)
+            {
+                // --- EDIT LOGIC ---
+                // We are in Edit Mode. Find the existing clip by its ID.
+                var clipToUpdate = allClips.FirstOrDefault(c => c.Id == _editingClipId);
+                if (clipToUpdate != null)
+                {
+                    // Update the properties of the found clip with the new data from the UI.
+                    clipToUpdate.Title = ClipTitle;
+                    clipToUpdate.Text = ClipText;
+                    clipToUpdate.ReciterId = SelectedReciter.Id;
+                    // Note: We are not changing the audio file itself in edit mode for simplicity.
+                    // The user would need to delete and re-add to change the file.
+                }
+                else
+                {
+                    MessageBox.Show("لم يتم العثور على المقطع المراد تعديله. قد يكون تم حذفه.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+            else
+            {
+                string? relativeFilePath = null; // Default to null
+
+                // Only copy a file if one was selected
+                if (!string.IsNullOrWhiteSpace(SourceFilePath))
+                {
+                    var newId = Guid.NewGuid().ToString("N");
+                    var extension = Path.GetExtension(SourceFilePath);
+                    var newFileName = $"{newId}{extension}";
+                    var destinationPath = Path.Combine(_clipsStoragePath, newFileName);
+
+                    File.Copy(SourceFilePath, destinationPath, true);
+                    relativeFilePath = Path.Combine("clips", newFileName);
+                }
+
+                var newClip = new Clip
+                {
+                    Id = Guid.NewGuid().ToString("N"), // Always generate a new ID
+                    ReciterId = SelectedReciter.Id,
+                    Text = ClipText,
+                    Title = ClipTitle,
+                    FilePath = relativeFilePath, // Can be null now
+                    IsEnabled = true,
+                    Tags = new List<string>()
+                };
+
+                allClips.Add(newClip);
+            }
+
             await _clipRepository.SaveClipsAsync(allClips);
 
+            // Tell the scheduler to reload its data to reflect the changes immediately.
             await _scheduler.RefreshDataAsync();
 
-            MessageBox.Show("تم حفظ المقطع بنجاح!", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
-            window?.Close(); // Close the dialog after saving
+            MessageBox.Show("تم الحفظ بنجاح!", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // This is important for the calling window to know the operation succeeded.
+            if (window != null)
+            {
+                window.DialogResult = true;
+                window.Close();
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"حدث خطأ أثناء حفظ المقطع: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"حدث خطأ أثناء الحفظ: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    public void SetClipForEditing(Clip clip)
+    {
+        IsEditMode = true;
+        _editingClipId = clip.Id;
+
+        ClipTitle = clip.Title;
+        ClipText = clip.Text;
+        SelectedReciter = AvailableReciters.FirstOrDefault(r => r.Id == clip.ReciterId);
+        SourceFilePath = "لا يمكن تغيير الملف الصوتي حاليًا. لحذفه وإضافة واحد جديد."; // Simplification for now
+    }
+
 }

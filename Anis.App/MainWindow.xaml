@@ -7,70 +7,102 @@
         mc:Ignorable="d"
         
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        xmlns:controls="clr-namespace:Anis.App.Controls"
+
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        Icon="/Assets/icon.ico"
-        Title="أنيس" Height="450" Width="380"
-        WindowStartupLocation="CenterScreen"
-        Closing="Window_Closing"
         FontFamily="Cairo"
         FlowDirection="RightToLeft"
-        Style="{StaticResource MaterialDesignWindow}">
+        
+        Icon="/Assets/icon.ico"
+        Title="إعدادات أنيس" Height="500" Width="600"
+    
+    WindowStartupLocation="CenterScreen"
+        Closing="Window_Closing"
+        
+        WindowStyle="None" AllowsTransparency="True" WindowChrome.IsHitTestVisibleInChrome="True">
 
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid>
+        <!-- This is the outer border for the custom window look -->
+        <Border BorderBrush="{DynamicResource PrimaryHueMidBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-        <!-- Tray Icon Definition -->
-        <tb:TaskbarIcon x:Name="MyNotifyIcon"
+                <Grid Grid.Row="0" Background="{DynamicResource PrimaryHueMidBrush}" MouseDown="TitleBar_MouseDown">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Click="CloseButton_Click" Height="30" Width="30">
+                            <materialDesign:PackIcon Kind="Close" Foreground="White"/>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" 
+                               Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Grid>
+                
+                <!-- Tray Icon Definition -->
+                <tb:TaskbarIcon x:Name="MyNotifyIcon"
                         IconSource="/Assets/icon.ico"
                         ToolTipText="أنيس - شغال في الخلفية"
                         TrayMouseDoubleClick="MyNotifyIcon_TrayMouseDoubleClick">
-            <tb:TaskbarIcon.ContextMenu>
-                <ContextMenu FlowDirection="RightToLeft">
-                    <MenuItem Header="الإعدادات" Click="Settings_Click" />
-                    <MenuItem x:Name="PauseMenuItem" Header="إيقاف مؤقت" IsCheckable="True" Click="PauseMenuItem_Click" />
-                    <Separator />
-                    <MenuItem Header="الخروج" Click="Exit_Click" />
-                </ContextMenu>
-            </tb:TaskbarIcon.ContextMenu>
-        </tb:TaskbarIcon>
+                    <tb:TaskbarIcon.ContextMenu>
+                        <ContextMenu FlowDirection="RightToLeft">
+                            <MenuItem Header="الإعدادات" Click="Settings_Click" />
+                            <MenuItem x:Name="PauseMenuItem" Header="إيقاف مؤقت" IsCheckable="True" Click="PauseMenuItem_Click" />
+                            <Separator />
+                            <MenuItem Header="الخروج" Click="Exit_Click" />
+                        </ContextMenu>
+                    </tb:TaskbarIcon.ContextMenu>
+                </tb:TaskbarIcon>
 
-        <!-- Settings Content -->
-        <StackPanel Grid.Row="0" Orientation="Vertical">
+                <!-- Settings Content -->
+                <TabControl Grid.Row="1" Style="{StaticResource MaterialDesignTabControl}">
+                    <TabItem Header="الإعدادات العامة">
+                        <!-- We put all your old settings content inside this tab -->
+                        <Grid Margin="15" DataContext="{Binding SettingsVM}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Vertical">
+                                <GroupBox Header="الفاصل الزمني (بالدقائق)" Margin="0,5">
+                                    <ComboBox Margin="10"
+                                        VerticalContentAlignment="Center" 
+                                        ItemsSource="{Binding PresetIntervals}"
+                                        Text="{Binding IntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        IsEditable="True"
+                                        materialDesign:HintAssist.Hint="اختر أو اكتب قيمة" />
+                                </GroupBox>
+                                <GroupBox Header="المظهر" Margin="0,10">
+                                    <ComboBox Margin="10"
+                                        ItemsSource="{Binding AvailableThemes}"
+                                        SelectedItem="{Binding SelectedTheme}"
+                                        DisplayMemberPath="Name"
+                                        materialDesign:HintAssist.Hint="اختر المظهر المفضل" />
+                                </GroupBox>
+                                <GroupBox Header="عام" Margin="0,10">
+                                    <StackPanel Margin="10">
+                                        <CheckBox Content="تشغيل مع بدء تشغيل ويندوز" 
+                                            IsChecked="{Binding RunOnWindowsStartup, Mode=TwoWay}"/>
+                                    </StackPanel>
+                                </GroupBox>
+                            </StackPanel>
 
-            <GroupBox Header="الفاصل الزمني (بالدقائق)" Margin="0,5">
-                <ComboBox Margin="10"
-                          VerticalContentAlignment="Center"
-                          ItemsSource="{Binding PresetIntervals}"
-                          Text="{Binding IntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          IsEditable="True"
-                          materialDesign:HintAssist.Hint="اختر أو اكتب قيمة" />
-            </GroupBox>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="حفظ الإعدادات" Width="120" Height="30" Margin="5" Command="{Binding SaveSettingsCommand}" Style="{StaticResource MaterialDesignRaisedButton}" />
+                            </StackPanel>
 
-            <GroupBox Header="المظهر" Margin="0,10">
-                <ComboBox Margin="10"
-                          ItemsSource="{Binding AvailableThemes}"
-                          SelectedItem="{Binding SelectedTheme}"
-                          DisplayMemberPath="Name"
-                          materialDesign:HintAssist.Hint="اختر المظهر المفضل" />
-            </GroupBox>
+                        </Grid>
+                    </TabItem>
 
-            <GroupBox Header="عام" Margin="0,10">
-                <StackPanel Margin="10">
-                    <CheckBox Content="تشغيل مع بدء تشغيل ويندوز" 
-                              IsChecked="{Binding RunOnWindowsStartup, Mode=TwoWay}"/>
-                </StackPanel>
-            </GroupBox>
-        </StackPanel>
+                    <TabItem Header="إدارة المقاطع">
+                        <controls:ClipsManagerView DataContext="{Binding ClipsManagerVM}" />
+                    </TabItem>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="إضافة مقطع" Width="120" Height="30" Margin="5" Click="AddClipButton_Click"/>
-            <Button Content="حفظ الإعدادات" Width="120" Height="30" Margin="5" Command="{Binding SaveSettingsCommand}" Style="{StaticResource MaterialDesignRaisedButton}" />
-        </StackPanel>
+                </TabControl>
+
+            </Grid>
+        </Border>
     </Grid>
 </Window>

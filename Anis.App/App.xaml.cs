@@ -38,7 +38,7 @@ public partial class App : Application
                 services.AddSingleton<IAudioPlayer, Anis.Infrastructure.Audio.NAudioPlayer>();
                 services.AddSingleton<IAnisThemeManager, WpfThemeManager>();
                 services.AddSingleton<INotificationHost, WpfNotificationHost>();
-
+                services.AddTransient<ClipsManagerViewModel>();
                 // Register Core Services
                 services.AddSingleton<IScheduler, SchedulerService>();
 

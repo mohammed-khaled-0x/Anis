@@ -12,8 +12,7 @@
         WindowStyle="None" 
         Background="Transparent"
         ShowInTaskbar="False"
-        Topmost="True"
-        Loaded="Window_Loaded">
+        Topmost="True">
 
     <Border Background="#2B2B2B" CornerRadius="8" BorderThickness="1" BorderBrush="#555555" Opacity="0.95" MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Border.Triggers>

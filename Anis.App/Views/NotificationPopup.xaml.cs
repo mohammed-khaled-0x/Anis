@@ -1,6 +1,8 @@
 ﻿using System.Windows;
 using Anis.Core.Domain;
 using System.Windows.Media.Animation;
+using System.Windows.Interop;
+using Anis.App.Win32;
 
 namespace Anis.App.Views;
 
@@ -11,13 +13,21 @@ public partial class NotificationPopup : Window
         InitializeComponent();
     }
 
-    private void Window_Loaded(object sender, RoutedEventArgs e)
+    protected override void OnSourceInitialized(EventArgs e)
     {
-        // Get the primary screen's working area (excludes the taskbar)
-        var workArea = SystemParameters.WorkArea;
+        base.OnSourceInitialized(e);
+
+        // Get the window handle (HWND)
+        var helper = new WindowInteropHelper(this);
+        IntPtr hwnd = helper.Handle;
+
+        // --- THIS IS THE FIX ---
+        // We use our custom helper to show the window without activating it.
+        NoActivateWindowHelper.ShowWindowWithoutActivation(hwnd);
 
         // Position the window at the bottom-right corner
-        var margin = 10.0; // Margin from the screen edges
+        var workArea = SystemParameters.WorkArea;
+        var margin = 10.0;
         this.Left = workArea.Right - this.ActualWidth - margin;
         this.Top = workArea.Bottom - this.ActualHeight - margin;
     }
